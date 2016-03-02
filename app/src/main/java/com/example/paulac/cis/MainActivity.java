@@ -132,14 +132,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             text = text.trim();
 
             Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
+            startActivity(new Intent(MainActivity.this, Drafts.class));
 
-            if(text.equals("Login Failed")){
+            /*if(text.equals("Login Failed")){
                 Intent in = new Intent(MainActivity.this, MainActivity.class);
                 startActivity(in);
             }
             else{
                 Toast.makeText(MainActivity.this, "Login Success", Toast.LENGTH_SHORT).show();
-            }
+            }*/
 
         }
 
