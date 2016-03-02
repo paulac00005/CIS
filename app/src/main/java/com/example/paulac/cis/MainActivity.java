@@ -3,11 +3,7 @@ package com.example.paulac.cis;
 //PASSWORD --->>>> md5(sha1(password) + md5(key))
 
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.content.pm.Signature;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -26,25 +22,19 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateEncodingException;
-import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Formatter;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     EditText etUsername, etPassword;
     Button login;
-
-    private String SHAHash;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String rawpass = etPassword.getText().toString();
         String key = "70930f27";
 
-        //String password = MD5(sha1(rawpass) + MD5(key));
+        String password = MD5(sha1(rawpass) + MD5(key));
 
 
         @Override
@@ -143,22 +133,47 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
 
-            if(text.equals("Login Success")){
+            if(text.equals("Login Failed")){
                 Intent in = new Intent(MainActivity.this, MainActivity.class);
                 startActivity(in);
             }
             else{
-                Toast.makeText(MainActivity.this, "Login Failed", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Login Success", Toast.LENGTH_SHORT).show();
             }
 
         }
 
-        /*String TAG = "HI";
-
-        String test = new String("Hello World");
-        Log.e(TAG, "String: " + test);
-        String SHA1 = SHA1(test);
-        Log.e(TAG, "SHA1 HASH: " + SHA1);*/
+        private String sha1(String password)
+        {
+            String sha1 = "";
+            try
+            {
+                MessageDigest crypt = MessageDigest.getInstance("SHA-1");
+                crypt.reset();
+                crypt.update(password.getBytes("UTF-8"));
+                sha1 = byteToHex(crypt.digest());
+            }
+            catch(NoSuchAlgorithmException e)
+            {
+                e.printStackTrace();
+            }
+            catch(UnsupportedEncodingException e)
+            {
+                e.printStackTrace();
+            }
+            return sha1;
+        }
+        private String byteToHex(final byte[] hash)
+        {
+            Formatter formatter = new Formatter();
+            for (byte b : hash)
+            {
+                formatter.format("%02x", b);
+            }
+            String result = formatter.toString();
+            formatter.close();
+            return result;
+        }
 
         private final String MD5(final String password) {
             try {
