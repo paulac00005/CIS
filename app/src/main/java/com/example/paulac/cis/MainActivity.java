@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     EditText etUsername, etPassword;
     Button login;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,16 +46,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         login = (Button)findViewById(R.id.login);
 
         login.setOnClickListener(this);
+
     }
+
 
 
     @Override
     public void onClick(View v){
-        if(v.getId()==R.id.login){
+        if(v.getId()==R.id.login) {
             LoginTask loginTask = new LoginTask();
             loginTask.execute("http://10.4.101.44/sbs/login.php");
         }
-
     }
 
     private class LoginTask extends AsyncTask<String, Void, Void> {
@@ -125,15 +127,44 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         protected void onPostExecute(Void arg0) {
-            if(dialog.isShowing()){
-                dialog.dismiss();
+            if(dialog.isShowing()){                dialog.dismiss();
             }
 
-            text = text.trim();
+            // Get username, password from EditText
+            String username = etUsername.getText().toString();
+            String password = etPassword.getText().toString();
 
+           /* // Check if username, password is filled
+            if(username.trim().length() > 0 && password.trim().length() > 0){
+                // For testing puspose username, password is checked with sample data
+                // username = test
+                // password = test
+                if(username.equals("test") && password.equals("test")){
+
+                    // Creating user login session
+                    // For testing i am stroing name, email as follow
+                    // Use user real data
+                    userLocalStore.createLoginSession("Android Hive", "anroidhive@gmail.com");
+
+                    // Staring MainActivity
+                    Intent i = new Intent(getApplicationContext(), MainActivity.class);
+                    startActivity(i);
+                    finish();
+
+                }else{
+                    // username / password doesn't match
+                    alert.showAlertDialog(MainActivity.this, "Login failed..", "Username/Password is incorrect", false);
+                }
+            }else{
+                // user didn't entered username or password
+                // Show alert asking him to enter the details
+                alert.showAlertDialog(MainActivity.this, "Login failed..", "Please enter username and password", false);
+            }*/
             Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
             startActivity(new Intent(MainActivity.this, Drafts.class));
 
+        }
+    }
             /*if(text.equals("Login Failed")){
                 Intent in = new Intent(MainActivity.this, MainActivity.class);
                 startActivity(in);
@@ -142,7 +173,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Toast.makeText(MainActivity.this, "Login Success", Toast.LENGTH_SHORT).show();
             }*/
 
-        }
 
         private String sha1(String password)
         {
@@ -200,5 +230,3 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
     }
-
-}
