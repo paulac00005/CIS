@@ -1,8 +1,12 @@
 package com.example.paulac.cis;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -11,11 +15,14 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -25,8 +32,12 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.HttpConnectionParams;
+import org.apache.http.params.HttpParams;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -37,7 +48,16 @@ public class Drafts extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener {
 
     EditText etTitle, etContent, etAuthor;
-    Button postbtn;
+    Button postbtn, gallery;
+    ImageView uploadedfile;
+
+    final int REQUEST_CODE = 1;
+
+    Bitmap bitmap;
+    private int requestCode;
+    private int resultCode;
+    private Intent data;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +66,6 @@ public class Drafts extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
         etTitle = (EditText)findViewById(R.id.etTitle);
         etContent = (EditText)findViewById(R.id.etContent);
         etAuthor = (EditText)findViewById(R.id.etAuthor);
@@ -54,6 +73,8 @@ public class Drafts extends AppCompatActivity
         postbtn = (Button)findViewById(R.id.postBtn);
         postbtn.setOnClickListener(this);
 
+        uploadedfile = (ImageView)findViewById(R.id.uploadedfile);
+        uploadedfile.setOnClickListener(this);
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setVisibility(View.GONE);
@@ -62,8 +83,6 @@ public class Drafts extends AppCompatActivity
             public void onClick(View view) {
                 Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
-
-
             }
         });
 
@@ -77,12 +96,33 @@ public class Drafts extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK && data != null && data.getData() != null) {
+
+            Uri filePath = data.getData();
+            try {
+                bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), filePath);
+                uploadedfile.setImageBitmap(bitmap);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
 
+        /*if(requestCode == REQUEST_CODE && resultCode == RESULT_OK && data != null){
+            Uri selectedImage = data.getData();
+            uploadedfile.setImageURI(selectedImage);
+        }
+    }*/
 
     private class PostTask extends AsyncTask<String, Void, Void> {
 
         Boolean result = false;
+        Bitmap image;
 
         InputStream is1;
         String text = "";
@@ -93,22 +133,37 @@ public class Drafts extends AppCompatActivity
         String author = etAuthor.toString();
         String key = "70930f27";
 
+
+        ProgressDialog dialog = new ProgressDialog(Drafts.this);
+
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            dialog.setMessage("Sending data . . .");
+            dialog.show();
         }
 
         @Override
         protected Void doInBackground(String... urls) {
             for (String url1 : urls) {
                 try {
+
+                    ByteArrayOutputStream bb = new ByteArrayOutputStream();
+                    image.compress(Bitmap.CompressFormat.JPEG, 100, bb);
+                    String uploadedfile = Base64.encodeToString(bb.toByteArray(), Base64.DEFAULT);
+
                     ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
                     postParams.add(new BasicNameValuePair("title", title));
                     postParams.add(new BasicNameValuePair("content", content));
                     postParams.add(new BasicNameValuePair("author", author));
                     postParams.add(new BasicNameValuePair("key", key));
+                    postParams.add(new BasicNameValuePair("uploadedfile", uploadedfile));
+
+                    HttpParams httpParams = getHttpParams();
+
                     HttpClient client = new DefaultHttpClient();
-                    HttpPost post = new HttpPost(url1);
+                    HttpPost post = new HttpPost("http://10.4.101.44/sbs/post_stories.php");
                     post.setEntity(new UrlEncodedFormEntity(postParams));
                     HttpResponse response = client.execute(post);
                     is1 = response.getEntity().getContent();
@@ -140,13 +195,23 @@ public class Drafts extends AppCompatActivity
         }
 
 
+        private HttpParams getHttpParams() {
+            HttpParams httpParams = new BasicHttpParams();
+            HttpConnectionParams.setConnectionTimeout(httpParams, 1000 * 30);
+            HttpConnectionParams.setSoTimeout(httpParams, 1000 * 30);
+            return httpParams;
+        }
+
+
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
+            if (dialog.isShowing()) {
+                dialog.dismiss();
+            }
+            Toast.makeText(Drafts.this, text, Toast.LENGTH_LONG).show();
         }
     }
-
-
 
 
     @Override
@@ -212,6 +277,10 @@ public class Drafts extends AppCompatActivity
             PostTask loginTask = new PostTask();
             loginTask.execute("http://10.4.101.44/sbs/post_story.php");
             }
+        else if(v.getId()==R.id.uploadedfile) {
+            Intent galleryIntent = new Intent(new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI));
+            startActivityForResult(galleryIntent, REQUEST_CODE);
+        }
         }
     }
 
@@ -360,7 +429,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         protected void onPostExecute(Void arg0) {
-            if(dialog.isShowing()){                dialog.dismiss();
+            if(dialog.isShowing()){
+            dialog.dismiss();
             }
 
             // Get username, password from EditText

@@ -58,4 +58,13 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="58dp" />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="gallery"
+        android:id="@+id/gallery"
+        android:layout_below="@+id/uploadedfile"
+        android:layout_alignRight="@+id/postBtn"
+        android:layout_alignEnd="@+id/postBtn" />
+
 </RelativeLayout>
