@@ -17,6 +17,22 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.message.BasicNameValuePair;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+
 public class Drafts extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener {
 
@@ -66,15 +82,63 @@ public class Drafts extends AppCompatActivity
 
     private class PostTask extends AsyncTask<String, Void, Void> {
 
+        Boolean result = false;
+
+        InputStream is1;
+        String text = "";
+        private String error = "";
+
+        String title = etTitle.toString();
+        String content = etContent.toString();
+        String author = etAuthor.toString();
+        String key = "70930f27";
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
         }
 
         @Override
-        protected Void doInBackground(String... params) {
+        protected Void doInBackground(String... urls) {
+            for (String url1 : urls) {
+                try {
+                    ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
+                    postParams.add(new BasicNameValuePair("title", title));
+                    postParams.add(new BasicNameValuePair("content", content));
+                    postParams.add(new BasicNameValuePair("author", author));
+                    postParams.add(new BasicNameValuePair("key", key));
+                    HttpClient client = new DefaultHttpClient();
+                    HttpPost post = new HttpPost(url1);
+                    post.setEntity(new UrlEncodedFormEntity(postParams));
+                    HttpResponse response = client.execute(post);
+                    is1 = response.getEntity().getContent();
+
+                    result = true;
+
+                } catch (ClientProtocolException e) {
+                    error += "\nClientProtocolException: " + e.getMessage();
+                } catch (IOException e) {
+                    error += "\nClientProtocolException: " + e.getMessage();
+                }
+
+                BufferedReader reader;
+
+                try {
+                    reader = new BufferedReader(new InputStreamReader(is1, "iso-8859-1"), 8);
+                    String line = null;
+
+                    while ((line = reader.readLine()) != null) {
+                        text += line + "\n";
+                    }
+                } catch (UnsupportedEncodingException e) {
+                    error += "\nClientProtocolException: " + e.getMessage();
+                } catch (IOException e) {
+                    error += "\nClientProtocolException: " + e.getMessage();
+                }
+            }
             return null;
         }
+
 
         @Override
         protected void onPostExecute(Void aVoid) {
