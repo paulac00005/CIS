@@ -32,9 +32,6 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpConnectionParams;
-import org.apache.http.params.HttpParams;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -160,10 +157,9 @@ public class Drafts extends AppCompatActivity
                     postParams.add(new BasicNameValuePair("key", key));
                     postParams.add(new BasicNameValuePair("uploadedfile", uploadedfile));
 
-                    HttpParams httpParams = getHttpParams();
 
                     HttpClient client = new DefaultHttpClient();
-                    HttpPost post = new HttpPost("http://10.4.101.44/sbs/post_stories.php");
+                    HttpPost post = new HttpPost(url1);
                     post.setEntity(new UrlEncodedFormEntity(postParams));
                     HttpResponse response = client.execute(post);
                     is1 = response.getEntity().getContent();
@@ -192,14 +188,6 @@ public class Drafts extends AppCompatActivity
                 }
             }
             return null;
-        }
-
-
-        private HttpParams getHttpParams() {
-            HttpParams httpParams = new BasicHttpParams();
-            HttpConnectionParams.setConnectionTimeout(httpParams, 1000 * 30);
-            HttpConnectionParams.setSoTimeout(httpParams, 1000 * 30);
-            return httpParams;
         }
 
 
