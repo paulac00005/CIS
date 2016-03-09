@@ -15,7 +15,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -34,7 +33,6 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -45,8 +43,16 @@ public class Drafts extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener {
 
     EditText etTitle, etContent, etAuthor;
-    Button postbtn, gallery;
+    Button postbtn, cam;
     ImageView uploadedfile;
+
+
+    Button btpic, btnup;
+    private Uri fileUri;
+    String picturePath;
+    Uri selectedImage;
+    Bitmap photo;
+    String ba1;
 
     final int REQUEST_CODE = 1;
 
@@ -63,15 +69,20 @@ public class Drafts extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        etTitle = (EditText)findViewById(R.id.etTitle);
-        etContent = (EditText)findViewById(R.id.etContent);
-        etAuthor = (EditText)findViewById(R.id.etAuthor);
+        etTitle = (EditText) findViewById(R.id.etTitle);
+        etContent = (EditText) findViewById(R.id.etContent);
+        etAuthor = (EditText) findViewById(R.id.etAuthor);
 
-        postbtn = (Button)findViewById(R.id.postBtn);
+        postbtn = (Button) findViewById(R.id.postBtn);
         postbtn.setOnClickListener(this);
 
-        uploadedfile = (ImageView)findViewById(R.id.uploadedfile);
+        cam = (Button) findViewById(R.id.cam);
+
+        cam.setOnClickListener(this);
+
+        uploadedfile = (ImageView) findViewById(R.id.uploadedfile);
         uploadedfile.setOnClickListener(this);
+
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setVisibility(View.GONE);
@@ -91,22 +102,7 @@ public class Drafts extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-    }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK && data != null && data.getData() != null) {
-
-            Uri filePath = data.getData();
-            try {
-                bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), filePath);
-                uploadedfile.setImageBitmap(bitmap);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
 
@@ -145,17 +141,12 @@ public class Drafts extends AppCompatActivity
         protected Void doInBackground(String... urls) {
             for (String url1 : urls) {
                 try {
-
-                    ByteArrayOutputStream bb = new ByteArrayOutputStream();
-                    image.compress(Bitmap.CompressFormat.JPEG, 100, bb);
-                    String uploadedfile = Base64.encodeToString(bb.toByteArray(), Base64.DEFAULT);
-
                     ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
                     postParams.add(new BasicNameValuePair("title", title));
                     postParams.add(new BasicNameValuePair("content", content));
                     postParams.add(new BasicNameValuePair("author", author));
                     postParams.add(new BasicNameValuePair("key", key));
-                    postParams.add(new BasicNameValuePair("uploadedfile", uploadedfile));
+                   // postParams.add(new BasicNameValuePair("uploadedfile", uploadedfile));
 
 
                     HttpClient client = new DefaultHttpClient();
@@ -268,6 +259,9 @@ public class Drafts extends AppCompatActivity
         else if(v.getId()==R.id.uploadedfile) {
             Intent galleryIntent = new Intent(new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI));
             startActivityForResult(galleryIntent, REQUEST_CODE);
+        }
+        else if(v.getId()==R.id.cam){
+
         }
         }
     }
