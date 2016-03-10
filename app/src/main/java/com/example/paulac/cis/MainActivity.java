@@ -54,8 +54,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View v){
         if(v.getId()==R.id.login) {
-            LoginTask loginTask = new LoginTask();
-            loginTask.execute("http://10.4.101.44/sbs/login.php");
+            LoginTask loginTask = new LoginTask(); loginTask.execute("http://10.4.101.44/sbs/login.php");
         }
     }
 
@@ -63,11 +62,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         ProgressDialog dialog = new ProgressDialog(MainActivity.this);
 
-        @Override
-        protected void onPreExecute() {
-            dialog.setMessage("Logging in...");
-            dialog.show();
-        }
+
 
         Boolean result = false;
 
@@ -126,6 +121,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         @Override
+        protected void onPreExecute() {
+            dialog.setMessage("Logging in...");
+            dialog.show();
+
+            if(text=="{status:"+"500,"+"message:"+"Check your credentials}"){
+                Toast.makeText(MainActivity.this, "Your username or password might be wrong", Toast.LENGTH_LONG).show();
+            }else if(text!="{status:"+"500,"+"message:"+"Check your credentials}"){
+                Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
+                startActivity(new Intent(MainActivity.this, Drafts.class));
+            }
+        }
+
+        @Override
         protected void onPostExecute(Void arg0) {
             if(dialog.isShowing()){
                 dialog.dismiss();
@@ -136,11 +144,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             String password = etPassword.getText().toString();
 
 
-            Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
-            startActivity(new Intent(MainActivity.this, Drafts.class));
-
+            }
         }
-    }
             /*if(text.equals("Login Failed")){
                 Intent in = new Intent(MainActivity.this, MainActivity.class);
                 startActivity(in);

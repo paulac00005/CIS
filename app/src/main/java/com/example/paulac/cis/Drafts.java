@@ -1,11 +1,15 @@
 package com.example.paulac.cis;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -15,6 +19,8 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Base64;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -24,7 +30,6 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
@@ -33,6 +38,8 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -43,24 +50,14 @@ public class Drafts extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, View.OnClickListener {
 
     EditText etTitle, etContent, etAuthor;
-    Button postbtn, cam;
+    Button postbtn, cam, gallery;
     ImageView uploadedfile;
 
-
-    Button btpic, btnup;
-    private Uri fileUri;
-    String picturePath;
-    Uri selectedImage;
-    Bitmap photo;
-    String ba1;
-
-    final int REQUEST_CODE = 1;
-
+    final int PIC_GALLERY_CODE = 1;
+    final int PIC_CAMERA_CODE = 2;
     Bitmap bitmap;
-    private int requestCode;
-    private int resultCode;
-    private Intent data;
-
+    File file;
+    Uri file_uri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,8 +74,10 @@ public class Drafts extends AppCompatActivity
         postbtn.setOnClickListener(this);
 
         cam = (Button) findViewById(R.id.cam);
+        gallery = (Button)findViewById(R.id.gallery);
 
         cam.setOnClickListener(this);
+        gallery.setOnClickListener(this);
 
         uploadedfile = (ImageView) findViewById(R.id.uploadedfile);
         uploadedfile.setOnClickListener(this);
@@ -106,16 +105,63 @@ public class Drafts extends AppCompatActivity
     }
 
 
-        /*if(requestCode == REQUEST_CODE && resultCode == RESULT_OK && data != null){
-            Uri selectedImage = data.getData();
-            uploadedfile.setImageURI(selectedImage);
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Uri selectedImageUri = null;
+        String filePath = null;
+        switch (requestCode) {
+            case PIC_GALLERY_CODE:
+                if (resultCode == Activity.RESULT_OK) {
+                    selectedImageUri = data.getData();
+                }
+                break;
+            case PIC_CAMERA_CODE:
+                if (resultCode == RESULT_OK) {
+                    //use imageUri here to access the image
+                    selectedImageUri = file_uri;
+                } else if (resultCode == RESULT_CANCELED) {
+                    Toast.makeText(this, "Picture was not taken", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Picture was not taken", Toast.LENGTH_SHORT).show();
+                }
+                break;
         }
-    }*/
+
+        if(selectedImageUri != null){
+            try {
+                // OI FILE Manager
+                String filemanagerstring = selectedImageUri.getPath();
+
+                // MEDIA GALLERY
+                String selectedImagePath = getPath(selectedImageUri);
+
+                if (selectedImagePath != null) {
+                    filePath = selectedImagePath;
+                } else if (filemanagerstring != null) {
+                    filePath = filemanagerstring;
+                } else {
+                    Toast.makeText(getApplicationContext(), "Unknown path",
+                            Toast.LENGTH_LONG).show();
+                    Log.e("Bitmap", "Unknown path");
+                }
+
+                if (filePath != null) {
+                    decodeFile(filePath);
+                } else {
+                    bitmap = null;
+                }
+            } catch (Exception e) {
+                Toast.makeText(getApplicationContext(), "Internal error",
+                        Toast.LENGTH_LONG).show();
+                Log.e(e.getClass().getName(), e.getMessage(), e);
+            }
+        }
+
+    }
+
 
     private class PostTask extends AsyncTask<String, Void, Void> {
 
         Boolean result = false;
-        Bitmap image;
 
         InputStream is1;
         String text = "";
@@ -126,9 +172,7 @@ public class Drafts extends AppCompatActivity
         String author = etAuthor.toString();
         String key = "70930f27";
 
-
         ProgressDialog dialog = new ProgressDialog(Drafts.this);
-
 
         @Override
         protected void onPreExecute() {
@@ -140,18 +184,37 @@ public class Drafts extends AppCompatActivity
         @Override
         protected Void doInBackground(String... urls) {
             for (String url1 : urls) {
-                try {
-                    ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
+
+
+                BitmapFactory.Options bfo;
+                ByteArrayOutputStream bao ;
+
+                bfo = new BitmapFactory.Options();
+                bfo.inSampleSize = 2;
+
+                bao = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 90, bao);
+                byte [] ba = bao.toByteArray();
+                String ba1 = Base64.encodeToString(ba, Base64.DEFAULT);
+                ArrayList nameValuePairs = new ArrayList();
+                nameValuePairs.add(new BasicNameValuePair("title", title));
+                nameValuePairs.add(new BasicNameValuePair("content", content));
+                nameValuePairs.add(new BasicNameValuePair("author", author));
+                nameValuePairs.add(new BasicNameValuePair("key", key));
+                nameValuePairs.add(new BasicNameValuePair("uploadedfile",ba1));
+                Log.v("log_tag", System.currentTimeMillis()+".jpg");
+
+
+                    /*ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
                     postParams.add(new BasicNameValuePair("title", title));
                     postParams.add(new BasicNameValuePair("content", content));
                     postParams.add(new BasicNameValuePair("author", author));
                     postParams.add(new BasicNameValuePair("key", key));
-                   // postParams.add(new BasicNameValuePair("uploadedfile", uploadedfile));
-
-
+                    postParams.add(new BasicNameValuePair("uploadedfile", ba1));*/
+                try {
                     HttpClient client = new DefaultHttpClient();
                     HttpPost post = new HttpPost(url1);
-                    post.setEntity(new UrlEncodedFormEntity(postParams));
+                    post.setEntity(new UrlEncodedFormEntity(nameValuePairs));
                     HttpResponse response = client.execute(post);
                     is1 = response.getEntity().getContent();
 
@@ -253,265 +316,95 @@ public class Drafts extends AppCompatActivity
     @Override
     public void onClick(View v) {
         if(v.getId()==R.id.postBtn){
-            PostTask loginTask = new PostTask();
-            loginTask.execute("http://10.4.101.44/sbs/post_story.php");
+            PostTask postTask = new PostTask();
+            postTask.execute("http://10.4.101.44/sbs/post_story.php");
             }
         else if(v.getId()==R.id.uploadedfile) {
-            Intent galleryIntent = new Intent(new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI));
-            startActivityForResult(galleryIntent, REQUEST_CODE);
-        }
-        else if(v.getId()==R.id.cam){
 
-        }
-        }
+        }else if(v.getId()==R.id.cam){
+
+            Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            getFileUri();
+            i.putExtra(MediaStore.EXTRA_OUTPUT, file_uri);
+            startActivityForResult(i, 10);
+
+            //define the file-name to save photo taken by Camera activity
+            //String fileName = "new-photo-name.jpg";
+            //create parameters for Intent with filename
+            //ContentValues values = new ContentValues();
+            //values.put(MediaStore.Images.Media.TITLE, "");
+            //values.put(MediaStore.Images.Media.DESCRIPTION,"Image capture by camera");
+            //imageUri is the current activity attribute, define and save it for later usage (also in onSaveInstanceState)
+            //imageUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            //create new Intent
+            //Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            //intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+            //intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
+            //startActivityForResult(intent, PIC_CAMERA_CODE);
+
+        }else if(v.getId()==R.id.gallery){
+
+            try {
+                Intent gintent = new Intent();
+                gintent.setType("image/*");
+                gintent.setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(
+                        Intent.createChooser(gintent, "Select Picture"),
+                        PIC_GALLERY_CODE);
+            } catch (Exception e) {
+                Toast.makeText(getApplicationContext(),
+                        e.getMessage(),
+                        Toast.LENGTH_LONG).show();
+                Log.e(e.getClass().getName(), e.getMessage(), e);
+            }}}
+
+    public void getFileUri(){
+        String image_name = "image";
+        file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES) + File.separator + image_name);
+        file_uri = Uri.fromFile(file);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*import android.app.ProgressDialog;
-        import android.content.Intent;
-        import android.os.AsyncTask;
-        import android.os.Bundle;
-        import android.support.v7.app.AppCompatActivity;
-        import android.view.View;
-        import android.widget.Button;
-        import android.widget.EditText;
-        import android.widget.Toast;
-
-        import org.apache.http.HttpResponse;
-        import org.apache.http.NameValuePair;
-        import org.apache.http.client.ClientProtocolException;
-        import org.apache.http.client.HttpClient;
-        import org.apache.http.client.entity.UrlEncodedFormEntity;
-        import org.apache.http.client.methods.HttpPost;
-        import org.apache.http.impl.client.DefaultHttpClient;
-        import org.apache.http.message.BasicNameValuePair;
-
-        import java.io.BufferedReader;
-        import java.io.IOException;
-        import java.io.InputStream;
-        import java.io.InputStreamReader;
-        import java.io.UnsupportedEncodingException;
-        import java.security.MessageDigest;
-        import java.security.NoSuchAlgorithmException;
-        import java.util.ArrayList;
-        import java.util.Formatter;
-
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
-
-    EditText etUsername, etPassword;
-    Button login;
-
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        etUsername = (EditText)findViewById(R.id.etUsername);
-        etPassword = (EditText)findViewById(R.id.etPassword);
-        login = (Button)findViewById(R.id.login);
-
-        login.setOnClickListener(this);
-
-    }
-
-
-
-    @Override
-    public void onClick(View v){
-        if(v.getId()==R.id.login) {
-            LoginTask loginTask = new LoginTask();
-            loginTask.execute("http://10.4.101.44/sbs/login.php");
-        }
-    }
-
-    private class LoginTask extends AsyncTask<String, Void, Void> {
-
-        ProgressDialog dialog = new ProgressDialog(MainActivity.this);
-
-        @Override
-        protected void onPreExecute() {
-            dialog.setMessage("Sending Data...");
-            dialog.show();
-        }
-
-        Boolean result = false;
-
-        InputStream is1;
-        String text = "";
-        private String error = "";
-
-        String username = etUsername.getText().toString();
-        String rawpass = etPassword.getText().toString();
-        String key = "70930f27";
-
-        String password = MD5(sha1(rawpass) + MD5(key));
-
-
-        @Override
-        protected Void doInBackground(String... urls) {
-            for(String url1 : urls){
-
-
-
-                try {
-                    ArrayList<NameValuePair> params = new ArrayList<NameValuePair>();
-                    params.add(new BasicNameValuePair("username", username));
-                    params.add(new BasicNameValuePair("password", password));
-                    params.add(new BasicNameValuePair("key", key));
-                    HttpClient client = new DefaultHttpClient();
-                    HttpPost post = new HttpPost(url1);
-                    post.setEntity(new UrlEncodedFormEntity(params));
-                    HttpResponse response = client.execute(post);
-                    is1 = response.getEntity().getContent();
-
-                    result = true;
-
-                } catch (ClientProtocolException e) {
-                    error += "\nClientProtocolException: " + e.getMessage();
-                } catch (IOException e) {
-                    error += "\nClientProtocolException: " + e.getMessage();
-                }
-
-                BufferedReader reader;
-
-                try {
-                    reader = new BufferedReader(new InputStreamReader(is1 ,"iso-8859-1"), 8);
-                    String line = null;
-
-                    while ((line = reader.readLine()) != null) {
-                        text += line + "\n";
-                    }
-                } catch (UnsupportedEncodingException e) {
-                    error += "\nClientProtocolException: " + e.getMessage();
-                } catch (IOException e) {
-                    error += "\nClientProtocolException: " + e.getMessage();
-                }
-            }
+    public String getPath(Uri uri) {
+        String[] projection = { MediaStore.Images.Media.DATA };
+        Cursor cursor = managedQuery(uri, projection, null, null, null);
+        if (cursor != null) {
+            // HERE YOU WILL GET A NULLPOINTER IF CURSOR IS NULL
+            // THIS CAN BE, IF YOU USED OI FILE MANAGER FOR PICKING THE MEDIA
+            int column_index = cursor
+                    .getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        } else
             return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void arg0) {
-            if(dialog.isShowing()){
-            dialog.dismiss();
-            }
-
-            // Get username, password from EditText
-            String username = etUsername.getText().toString();
-            String password = etPassword.getText().toString();
-
-           /* // Check if username, password is filled
-            if(username.trim().length() > 0 && password.trim().length() > 0){
-                // For testing puspose username, password is checked with sample data
-                // username = test
-                // password = test
-                if(username.equals("test") && password.equals("test")){
-
-                    // Creating user login session
-                    // For testing i am stroing name, email as follow
-                    // Use user real data
-                    userLocalStore.createLoginSession("Android Hive", "anroidhive@gmail.com");
-
-                    // Staring MainActivity
-                    Intent i = new Intent(getApplicationContext(), MainActivity.class);
-                    startActivity(i);
-                    finish();
-
-                }else{
-                    // username / password doesn't match
-                    alert.showAlertDialog(MainActivity.this, "Login failed..", "Username/Password is incorrect", false);
-                }
-            }else{
-                // user didn't entered username or password
-                // Show alert asking him to enter the details
-                alert.showAlertDialog(MainActivity.this, "Login failed..", "Please enter username and password", false);
-            }
-            Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
-            startActivity(new Intent(MainActivity.this, Drafts.class));
-
-        }
-    }
-            /*if(text.equals("Login Failed")){
-                Intent in = new Intent(MainActivity.this, MainActivity.class);
-                startActivity(in);
-            }
-            else{
-                Toast.makeText(MainActivity.this, "Login Success", Toast.LENGTH_SHORT).show();
-            }
-
-
-    private String sha1(String password)
-    {
-        String sha1 = "";
-        try
-        {
-            MessageDigest crypt = MessageDigest.getInstance("SHA-1");
-            crypt.reset();
-            crypt.update(password.getBytes("UTF-8"));
-            sha1 = byteToHex(crypt.digest());
-        }
-        catch(NoSuchAlgorithmException e)
-        {
-            e.printStackTrace();
-        }
-        catch(UnsupportedEncodingException e)
-        {
-            e.printStackTrace();
-        }
-        return sha1;
-    }
-    private String byteToHex(final byte[] hash)
-    {
-        Formatter formatter = new Formatter();
-        for (byte b : hash)
-        {
-            formatter.format("%02x", b);
-        }
-        String result = formatter.toString();
-        formatter.close();
-        return result;
     }
 
-    private final String MD5(final String password) {
-        try {
+    public void decodeFile(String filePath) {
+        // Decode image size
+        BitmapFactory.Options o = new BitmapFactory.Options();
+        o.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(filePath, o);
 
-            MessageDigest digest = java.security.MessageDigest
-                    .getInstance("MD5");
-            digest.update(password.getBytes());
-            byte messageDigest[] = digest.digest();
+        // The new size we want to scale to
+        final int REQUIRED_SIZE = 1024;
 
-            StringBuffer hexString = new StringBuffer();
-            for (int i = 0; i < messageDigest.length; i++) {
-                String h = Integer.toHexString(0xFF & messageDigest[i]);
-                while (h.length() < 2)
-                    h = "0" + h;
-                hexString.append(h);
-            }
-            return hexString.toString();
-
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+        // Find the correct scale value. It should be the power of 2.
+        int width_tmp = o.outWidth, height_tmp = o.outHeight;
+        int scale = 1;
+        while (true) {
+            if (width_tmp < REQUIRED_SIZE && height_tmp < REQUIRED_SIZE)
+                break;
+            width_tmp /= 2;
+            height_tmp /= 2;
+            scale *= 2;
         }
-        return "";
+
+        // Decode with inSampleSize
+        BitmapFactory.Options o2 = new BitmapFactory.Options();
+        o2.inSampleSize = scale;
+        bitmap = BitmapFactory.decodeFile(filePath, o2);
+
+        uploadedfile.setImageBitmap(bitmap);
+
     }
 
-}*/
+}
