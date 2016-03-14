@@ -163,6 +163,13 @@ public class Stories extends AppCompatActivity
                         JSONObject jsono = new JSONObject(data);
                         JSONArray jarray = jsono.getJSONArray("posts");
 
+                        //ImageView simage = (ImageView)findViewById(R.id.simage);
+
+                        /*Picasso.with(getApplicationContext())
+                                .load("http://10.4.101.44/sbs/img_path")
+                                .centerCrop()
+                                .into(simage);*/
+
                         for (int i = 0; i < jarray.length(); i++) {
                             JSONObject object = jarray.getJSONObject(i);
 
@@ -170,7 +177,7 @@ public class Stories extends AppCompatActivity
 
                             stories.setImage_path(object.getString("img_path"));
                             stories.setTitle(object.getString("title"));
-                            stories.setCreated(object.getString("created"));
+                            stories.setCreated(object.getString("img_path"));
 
                             storiesList.add(stories);
                         }

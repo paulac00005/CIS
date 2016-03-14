@@ -3,6 +3,7 @@ package com.example.paulac.cis;
 /**
  * Created by paulac on 3/14/16.
  */
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -48,7 +49,7 @@ public class StoriesAdapter extends ArrayAdapter<StoriesModel> {
         holder.CustomIV.setImageResource(R.drawable.imagehere);
         new DownloadImageTask(holder.CustomIV).execute(storiesList.get(position).getImage_path());
         holder.sTitle.setText(storiesList.get(position).getTitle());
-        holder.sDate.setText(storiesList.get(position).getImage_path());
+        holder.sDate.setText(storiesList.get(position).getCreated());
         return v;
 
     }
@@ -68,6 +69,7 @@ public class StoriesAdapter extends ArrayAdapter<StoriesModel> {
         protected Bitmap doInBackground(String... urls) {
             String urldisplay = urls[0];
             Bitmap mIcon = null;
+
             try {
                 InputStream in = new java.net.URL(urldisplay).openStream();
                 mIcon = BitmapFactory.decodeStream(in);
