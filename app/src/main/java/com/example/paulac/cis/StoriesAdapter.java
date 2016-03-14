@@ -70,6 +70,7 @@ public class StoriesAdapter extends ArrayAdapter<StoriesModel> {
             String urldisplay = urls[0];
             Bitmap mIcon = null;
 
+
             try {
                 InputStream in = new java.net.URL(urldisplay).openStream();
                 mIcon = BitmapFactory.decodeStream(in);

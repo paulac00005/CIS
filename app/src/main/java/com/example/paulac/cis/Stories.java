@@ -163,13 +163,6 @@ public class Stories extends AppCompatActivity
                         JSONObject jsono = new JSONObject(data);
                         JSONArray jarray = jsono.getJSONArray("posts");
 
-                        //ImageView simage = (ImageView)findViewById(R.id.simage);
-
-                        /*Picasso.with(getApplicationContext())
-                                .load("http://10.4.101.44/sbs/img_path")
-                                .centerCrop()
-                                .into(simage);*/
-
                         for (int i = 0; i < jarray.length(); i++) {
                             JSONObject object = jarray.getJSONObject(i);
 
