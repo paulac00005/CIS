@@ -204,13 +204,6 @@ public class Drafts extends AppCompatActivity
                 nameValuePairs.add(new BasicNameValuePair("uploadedfile",ba1));
                 Log.v("log_tag", System.currentTimeMillis()+".jpg");
 
-
-                    /*ArrayList<NameValuePair> postParams = new ArrayList<NameValuePair>();
-                    postParams.add(new BasicNameValuePair("title", title));
-                    postParams.add(new BasicNameValuePair("content", content));
-                    postParams.add(new BasicNameValuePair("author", author));
-                    postParams.add(new BasicNameValuePair("key", key));
-                    postParams.add(new BasicNameValuePair("uploadedfile", ba1));*/
                 try {
                     HttpClient client = new DefaultHttpClient();
                     HttpPost post = new HttpPost(url1);
@@ -297,7 +290,7 @@ public class Drafts extends AppCompatActivity
         if (id == R.id.create) {
             startActivity(new Intent(Drafts.this, Drafts.class));
         } else if (id == R.id.stories) {
-
+            startActivity(new Intent(Drafts.this, Stories.class));
         } else if (id == R.id.settings) {
 
         } else if (id == R.id.logout) {

@@ -81,8 +81,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         protected Void doInBackground(String... urls) {
             for(String url1 : urls){
 
-
-
                 try {
                     ArrayList<NameValuePair> params = new ArrayList<NameValuePair>();
                     params.add(new BasicNameValuePair("username", username));
@@ -124,35 +122,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         protected void onPreExecute() {
             dialog.setMessage("Logging in...");
             dialog.show();
-
-            if(text=="{status:"+"500,"+"message:"+"Check your credentials}"){
-                Toast.makeText(MainActivity.this, "Your username or password might be wrong", Toast.LENGTH_LONG).show();
-            }else if(text!="{status:"+"500,"+"message:"+"Check your credentials}"){
-                Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
-                startActivity(new Intent(MainActivity.this, Drafts.class));
-            }
         }
 
         @Override
         protected void onPostExecute(Void arg0) {
-            if(dialog.isShowing()){
+            if (dialog.isShowing()) {
                 dialog.dismiss();
+
+                Toast.makeText(MainActivity.this, text, Toast.LENGTH_SHORT).show();
+
+                if(text.contains("username")){
+                    Intent in = new Intent(MainActivity.this, Drafts.class);
+                    startActivity(in);
+                }
+
             }
-
-            // Get username, password from EditText
-            String username = etUsername.getText().toString();
-            String password = etPassword.getText().toString();
-
-
             }
         }
-            /*if(text.equals("Login Failed")){
-                Intent in = new Intent(MainActivity.this, MainActivity.class);
-                startActivity(in);
-            }
-            else{
-                Toast.makeText(MainActivity.this, "Login Success", Toast.LENGTH_SHORT).show();
-            }*/
 
 
         private String sha1(String password)
