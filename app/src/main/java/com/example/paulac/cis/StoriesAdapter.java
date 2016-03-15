@@ -61,18 +61,17 @@ public class StoriesAdapter extends ArrayAdapter<StoriesModel> {
     }
 
     private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
-        ImageView bmImage;
+        ImageView CustomIV;
 
         public DownloadImageTask(ImageView bmImage) {
-            this.bmImage = bmImage;
+            this.CustomIV = bmImage;
         }
         protected Bitmap doInBackground(String... urls) {
-            String urldisplay = urls[0];
+            String display = urls[0];
             Bitmap mIcon = null;
 
-
             try {
-                InputStream in = new java.net.URL(urldisplay).openStream();
+                InputStream in = new java.net.URL(display).openStream();
                 mIcon = BitmapFactory.decodeStream(in);
             } catch (Exception e) {
                 Log.e("Error", e.getMessage());
@@ -81,8 +80,8 @@ public class StoriesAdapter extends ArrayAdapter<StoriesModel> {
             return mIcon;
         }
 
-        protected void onPostExecute(Bitmap result) {
-            bmImage.setImageBitmap(result);
+        protected void onPostExecute(Bitmap result){
+            CustomIV.setImageBitmap(result);
         }
     }
 

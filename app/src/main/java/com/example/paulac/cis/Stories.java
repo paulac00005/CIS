@@ -14,6 +14,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -35,7 +36,7 @@ public class Stories extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     ArrayList<StoriesModel> storiesList;
-
+    ImageView simage;
     StoriesAdapter storiesAdapter;
 
     @Override
@@ -44,6 +45,8 @@ public class Stories extends AppCompatActivity
         setContentView(R.layout.activity_stories2);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        simage = (ImageView)findViewById(R.id.simage);
 
         storiesList = new ArrayList<StoriesModel>();
         new JSONAsyncTask().execute("http://10.4.101.44/sbs/get_stories.php");
