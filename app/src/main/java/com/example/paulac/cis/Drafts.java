@@ -70,14 +70,14 @@ public class Drafts extends AppCompatActivity
         etContent = (EditText) findViewById(R.id.etContent);
         etAuthor = (EditText) findViewById(R.id.etAuthor);
 
-        postbtn = (Button) findViewById(R.id.postBtn);
-        postbtn.setOnClickListener(this);
+        //postbtn = (Button) findViewById(R.id.postBtn);
+        //postbtn.setOnClickListener(this);
 
-        cam = (Button) findViewById(R.id.cam);
-        gallery = (Button)findViewById(R.id.gallery);
+        //cam = (Button) findViewById(R.id.cam);
+       // gallery = (Button)findViewById(R.id.gallery);
 
-        cam.setOnClickListener(this);
-        gallery.setOnClickListener(this);
+//        cam.setOnClickListener(this);
+    //    gallery.setOnClickListener(this);
 
         uploadedfile = (ImageView) findViewById(R.id.uploadedfile);
         uploadedfile.setOnClickListener(this);
@@ -314,28 +314,14 @@ public class Drafts extends AppCompatActivity
             }
         else if(v.getId()==R.id.uploadedfile) {
 
-        }else if(v.getId()==R.id.cam){
+        }/*else if(v.getId()==R.id.cam){
 
             Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
             getFileUri();
             i.putExtra(MediaStore.EXTRA_OUTPUT, file_uri);
             startActivityForResult(i, 10);
 
-            //define the file-name to save photo taken by Camera activity
-            //String fileName = "new-photo-name.jpg";
-            //create parameters for Intent with filename
-            //ContentValues values = new ContentValues();
-            //values.put(MediaStore.Images.Media.TITLE, "");
-            //values.put(MediaStore.Images.Media.DESCRIPTION,"Image capture by camera");
-            //imageUri is the current activity attribute, define and save it for later usage (also in onSaveInstanceState)
-            //imageUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-            //create new Intent
-            //Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-            //intent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-            //intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
-            //startActivityForResult(intent, PIC_CAMERA_CODE);
-
-        }else if(v.getId()==R.id.gallery){
+        }*/else if(v.getId()==R.id.gallery){
 
             try {
                 Intent gintent = new Intent();
