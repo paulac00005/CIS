@@ -41,27 +41,111 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        etUsername = (EditText)findViewById(R.id.etUsername);
-        etPassword = (EditText)findViewById(R.id.etPassword);
-        login = (Button)findViewById(R.id.login);
+        etUsername = (EditText) findViewById(R.id.etUsername);
+        etPassword = (EditText) findViewById(R.id.etPassword);
+        login = (Button) findViewById(R.id.login);
 
         login.setOnClickListener(this);
 
     }
 
 
-
     @Override
-    public void onClick(View v){
-        if(v.getId()==R.id.login) {
-            LoginTask loginTask = new LoginTask(); loginTask.execute("http://10.4.101.44/sbs/login.php");
+    public void onClick(View v) {
+        if (v.getId() == R.id.login) {
+            LoginTask loginTask = new LoginTask();
+            loginTask.execute("http://10.4.101.44/sbs/login.php");
         }
     }
 
-    private class LoginTask extends AsyncTask<String, Void, Void> {
+
+    private class LoginTask extends AsyncTask<String, Void, Void>{
+
+        private ProgressDialog dialog = new ProgressDialog(MainActivity.this);
+
+        Boolean result = false;
+
+        private String error;
+        @Override
+        protected void onPreExecute() {
+            dialog.setMessage("Reading Data...");
+            dialog.show();
+
+            startActivity(new Intent(MainActivity.this, Drafts.class));
+        }
+
+        InputStream is1;
+        String text = "";
+
+        String username = etUsername.getText().toString();
+        String rawpass = etPassword.getText().toString();
+        String key = "70930f27";
+
+        String password = MD5(sha1(rawpass) + MD5(key));
+
+        @Override
+        protected Void doInBackground(String... urls) {
+            for(String url1: urls) {
+                try {
+                    ArrayList<NameValuePair> params = new ArrayList<NameValuePair>();
+                    params.add(new BasicNameValuePair("username", username));
+                    params.add(new BasicNameValuePair("password", password));
+                    params.add(new BasicNameValuePair("key", key));
+                    HttpClient client = new DefaultHttpClient();
+                    HttpPost post = new HttpPost(url1);
+                    post.setEntity(new UrlEncodedFormEntity(params));
+                    HttpResponse response = client.execute(post);
+                    is1 = response.getEntity().getContent();
+
+                    result = true;
+
+                } catch (ClientProtocolException e) {
+                    error += "\nClientProtocolException: " + e.getMessage();
+                } catch (IOException e) {
+                    error += "\nClientProtocolException: " + e.getMessage();
+                }
+            }
+
+                BufferedReader reader;
+
+                try {
+                    reader = new BufferedReader(new InputStreamReader(is1, "iso-8859-1"), 8);
+                    String line = null;
+
+                    while ((line = reader.readLine()) != null) {
+                        text += line + "\n";
+                    }
+                } catch (UnsupportedEncodingException e) {
+                    error += "\nClientProtocolException: " + e.getMessage();
+                } catch (IOException e) {
+                    error += "\nClientProtocolException: " + e.getMessage();
+                }
+                return null;
+            }
+
+        @Override
+        protected void onPostExecute(Void result) {
+            if(dialog.isShowing()){
+                dialog.dismiss();
+
+                if(text.contains("500")){
+                    Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
+            }else if(text.contains("200")){
+                    Toast.makeText(MainActivity.this, text, Toast.LENGTH_LONG).show();
+                    startActivity(new Intent(MainActivity.this, Drafts.class));
+                }
+
+        }
+
+    }
+
+
+
+
+
+    /*private class LoginTask extends AsyncTask<String, Void, Void> {
 
         ProgressDialog dialog = new ProgressDialog(MainActivity.this);
-
 
 
         Boolean result = false;
@@ -79,7 +163,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         protected Void doInBackground(String... urls) {
-            for(String url1 : urls){
+            for (String url1 : urls) {
 
                 try {
                     ArrayList<NameValuePair> params = new ArrayList<NameValuePair>();
@@ -103,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 BufferedReader reader;
 
                 try {
-                    reader = new BufferedReader(new InputStreamReader(is1 ,"iso-8859-1"), 8);
+                    reader = new BufferedReader(new InputStreamReader(is1, "iso-8859-1"), 8);
                     String line = null;
 
                     while ((line = reader.readLine()) != null) {
@@ -124,7 +208,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             dialog.show();
         }
 
-        @Override
+        /*@Override
         protected void onPostExecute(Void arg0) {
             if (dialog.isShowing()) {
                 dialog.dismiss();
@@ -137,35 +221,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
 
             }
-            }
-        }
+            }}*/
 
 
-        private String sha1(String password)
-        {
+
+        private String sha1(String password) {
             String sha1 = "";
-            try
-            {
+            try {
                 MessageDigest crypt = MessageDigest.getInstance("SHA-1");
                 crypt.reset();
                 crypt.update(password.getBytes("UTF-8"));
                 sha1 = byteToHex(crypt.digest());
-            }
-            catch(NoSuchAlgorithmException e)
-            {
+            } catch (NoSuchAlgorithmException e) {
                 e.printStackTrace();
-            }
-            catch(UnsupportedEncodingException e)
-            {
+            } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
             return sha1;
         }
-        private String byteToHex(final byte[] hash)
-        {
+
+        private String byteToHex(final byte[] hash) {
             Formatter formatter = new Formatter();
-            for (byte b : hash)
-            {
+            for (byte b : hash) {
                 formatter.format("%02x", b);
             }
             String result = formatter.toString();
@@ -196,4 +273,4 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return "";
         }
 
-    }
+    }}
