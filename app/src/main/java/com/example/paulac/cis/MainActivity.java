@@ -80,7 +80,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         String username = etUsername.getText().toString();
         String rawpass = etPassword.getText().toString();
         String key = "70930f27";
-
         String password = MD5(sha1(rawpass) + MD5(key));
 
         @Override

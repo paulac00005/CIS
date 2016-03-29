@@ -1,5 +1,6 @@
 package com.example.paulac.cis;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -125,17 +126,13 @@ public class Stories extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camara) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        if (id == R.id.create) {
+            Intent i = new Intent(Stories.this, Drafts.class);
+        } else if (id == R.id.stories) {
+            this.recreate();
+        } else if (id == R.id.settings) {
 
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
+        } else if (id == R.id.logout) {
 
         }
 
@@ -150,7 +147,6 @@ public class Stories extends AppCompatActivity
             protected Boolean doInBackground(String... urls) {
                 try {
 
-                    //------------------>>
                     HttpGet httppost = new HttpGet(urls[0]);
                     HttpClient httpclient = new DefaultHttpClient();
                     HttpResponse response = httpclient.execute(httppost);
@@ -173,7 +169,7 @@ public class Stories extends AppCompatActivity
 
                             stories.setImage_path(object.getString("img_path"));
                             stories.setTitle(object.getString("title"));
-                            stories.setCreated(object.getString("img_path"));
+                            stories.setCreated(object.getString("created"));
 
                             storiesList.add(stories);
                         }
